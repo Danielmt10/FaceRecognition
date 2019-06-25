@@ -2,9 +2,9 @@
 import cv2
 #Modulo para leer directorios y rutas de archivos
 import os
-#OpenCV trabaja con arreglos de numpy
+import shutil
 
-#cargamos la plantilla e inicializamos la webcam
+#cargar la plantilla e inicializar la webcam
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 if cv2.VideoCapture.isOpened:
@@ -12,11 +12,11 @@ if cv2.VideoCapture.isOpened:
     
 cap = cv2.VideoCapture(0)
 
-print('ingrese el nombre de la persona')
+print('Por favor ingrese el nombre de la persona a escanear:')
 nombre=input()
 
 #Directorio donde se encuentra la carpeta con el nombre de la persona
-dir_faces = 'att_faces/orl_faces'
+dir_faces = 'faces'
 path = os.path.join(dir_faces, nombre)
 
 #Tamaño para reducir a miniaturas las fotografias
@@ -24,6 +24,10 @@ size = 4
 
 #Si no hay una carpeta con el nombre ingresado entonces se crea
 if not os.path.isdir(path):
+    os.mkdir(path)
+    
+else:
+    shutil.rmtree(path)
     os.mkdir(path)
 
 img_width, img_height = 112, 92
@@ -33,15 +37,15 @@ count = 0
 while count < 500:
     #leemos un frame y lo guardamos
     rval, img = cap.read()
+    img = cv2.flip(img,1,0)
 
-    #convertimos la imagen a blanco y negro
+    #convertir la imagen a blanco y negro
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     #redimensionar la imagen
     mini = cv2.resize(gray, (int(gray.shape[1] / size), int(gray.shape[0] / size)))
 
-    """buscamos las coordenadas de los rostros (si los hay) y
-   guardamos su posicion"""
+    #Buscar las coordenadas de los rostros 
     faces = face_cascade.detectMultiScale(mini)    
     faces = sorted(faces, key=lambda x: x[3])
     
@@ -67,9 +71,9 @@ while count < 500:
         count += 1
 
     #Mostramos la imagen
-    cv2.imshow('OpenCV Entrenamiento de ', img)
+    cv2.imshow('Facial Recognition ', img)
 
-#Si se presiona la tecla ESC se cierra el programa
+    #Si se presiona la tecla ESC se cierra el programa
     key = cv2.waitKey(10)
     if key == 27 or count==500:
         cap=cv2.VideoCapture(1)
